@@ -14,7 +14,7 @@ canvas {
 
 function startGame() {
 	myGamePiece = new component(30, 30, "yellow", 250, 450);
-	myGameObstacle;
+	myGameObstacle = new component(10, 200, "green", 300, 120); 
 	myGameArea.start();
 	
 }
@@ -79,10 +79,20 @@ function component(width, height, color, x, y) {
         	myGamePiece.newPos(); 
         	myGamePiece.update();
     }
+	function moveleft() {
+		myGamePiece.speedX -= 1;
+	}
+	function moveRight() {
+		myGamePiece.speedX += 1;
+	}
+		
 }
 }
 
 </script>
+	
+	<button onclick="moveleft()">LEFT</button>
+	<button onclick="moveright()">RIGHT</button>
 
 <p>Can't stump the Trump!!
 
