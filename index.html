@@ -16,10 +16,14 @@ var myGamePiece;
 var myBackground;
 var myBoard;
 var lanes = [];
+var myEndScreen;
+var done = false;
+var won  = true;
     
 function startGame() {
-	myGamePiece = new component(76, 51, "TrumpLeft.png", 250, 480 - 71, "trump");
+	myGamePiece = new component(51, 51, "TrumpLeft.png", 250, 480 - 71, "trump");
     myBackground = new component(640, 480, "des1.png", 0, 0, "image");
+    myEndScreen = new component(640, 480, "End.png", 0, 0, "image");
     myBoard = new board(0, 10);
     for(i = 0; i < myBoard.numLanes; i += 1) {
             lanes.push(new lane(i * myBoard.laneWidth, myBoard.startHeight));
@@ -49,6 +53,7 @@ var myGameArea = {
     },
     stop : function() {
         clearInterval(this.interval);
+        myEndScreen.update();
     }
 }
 
@@ -65,8 +70,9 @@ function component(width, height, color, x, y, type) {
         this.image.src = color;
     }
     if(type == "obstacle") {
-        this.speedY = 5;
+        this.speedY = 3;
     }
+    
 	this.update = function() {
         ctx = myGameArea.context;
         if(type == "image" || "obstacle" || "trump") {
@@ -87,10 +93,10 @@ function component(width, height, color, x, y, type) {
             {
                 this.obstacle = endHeight;
                 if(this.obstacle.active && 
-                   (((this.x < this.obstacle.x && this.obstacle.x < this.x + 76) || 
-                                             (this.x < this.obstacle.x + board.laneWidth && this.obstacle.x + board.laneWidth < this.x + 76)) && 
+                   (((this.x < this.obstacle.x && this.obstacle.x < this.x + 51) || 
+                                             (this.x < this.obstacle.x + board.laneWidth && this.obstacle.x + board.laneWidth < this.x + 51)) && 
                                             (this.obstacle.y + 24 > this.y))) {
-                    myGameArea.stop();
+                    return true;
                 }
             }
     
@@ -105,6 +111,13 @@ function component(width, height, color, x, y, type) {
         return endHeight; 
         } 
     }
+    
+    this.inLane = function(currentLane) {
+        this.toTest = currentLane;
+        if(this.x > this.toTest.x && this.x < this.toTest.x + 64) {
+                this.y = this.toTest.endHeight - 51;
+                }
+            }
 }
 
 function updateGameArea() {
@@ -126,14 +139,27 @@ function updateGameArea() {
             lanes[i].obstacles.push(new component(64, 24, "brick.jpg", lanes[i].x, lanes[i].y, "obstacle"));
         }
         for(j = 0; j < lanes[i].obstacles.length; j += 1) {
-            lanes[i].obstacles[j].newPos();
-            lanes[i].endHeight = lanes[i].obstacles[j].checkCollision(lanes[i].endHeight);
-            myGamePiece.checkCollision(lanes[i].obstacles[j]);
-            lanes[i].obstacles[j].update();
-            }
+            if(!done) {
+                lanes[i].obstacles[j].newPos();
+                lanes[i].endHeight = lanes[i].obstacles[j].checkCollision(lanes[i].endHeight);
+            
+                lanes[i].obstacles[j].update();
+                if(myGamePiece.checkCollision(lanes[i].obstacles[j])) {
+                    done  = true;
+                }
+            } 
+        }
+        if(!done) {
+            myGamePiece.inLane(lanes[i]);
+        }
     }
-    myGamePiece.newPos();
-    myGamePiece.update();
+    if(done) {
+            myGameArea.stop();
+        }
+    else {
+        myGamePiece.newPos();
+        myGamePiece.update();
+    }
 }
 
 function board(startHeight, numLanes) {
