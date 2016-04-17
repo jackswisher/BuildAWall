@@ -13,7 +13,9 @@ canvas {
 <script>
 
 function startGame() {
-    myGameArea.start();
+	myGamePiece = new component(30, 30, "yellow", 250, 450);
+	myGameArea.start();
+	
 }
 
 var myGameArea = {
@@ -24,6 +26,11 @@ var myGameArea = {
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
     }
+}
+
+function updateGameArea() {
+	myGameArea.clear();
+	my
 }
 
 </script>
