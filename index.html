@@ -15,16 +15,22 @@ canvas {
 var myGamePiece;
 var myBackground;
 var myBoard;
+var lanes = [];
     
 function startGame() {
-	myGamePiece = new component(30, 30, "yellow", 250, 450, "rectangle");
+	myGamePiece = new component(30, 30, "yellow", 250, 512, "rectangle");
     myBackground = new component(768, 512, "desert.png", 0, 0, "image");
+    myBoard = new board(0, 10);
+    for(i = 0; i < myBoard.numLanes; i += 1) {
+            lanes.push(new lane(i * myBoard.laneWidth, myBoard.startHeight));
+        }
 	myGameArea.start();
 }
 
 var myGameArea = {
     canvas : document.createElement("canvas"),
     start : function() {
+        this.difficulty = .5;
         this.canvas.width = 768;
         this.canvas.height = 512;
         this.context = this.canvas.getContext("2d");
@@ -53,14 +59,16 @@ function component(width, height, color, x, y, type) {
     this.speedY = 0;
     this.x = x;
     this.y = y;
-    if(type == "image") {
+    if(type == "image" || "obstacle") {
         this.image = new Image();
         this.image.src = color;
     }
-    
+    if(type == "obstacle") {
+        this.speedY = 5;
+    }
 	this.update = function() {
         ctx = myGameArea.context;
-        if(type == "image") {
+        if(type == "image" || type == "obstacle") {
             ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
         } else {
             ctx.fillStyle = color;
@@ -72,18 +80,53 @@ function component(width, height, color, x, y, type) {
         this.x += this.speedX;
         this.y += this.speedY;
     }
+    
+    this.checkCollision = function(endHeight) {
+        this.toCheck = endHeight;
+        if(this.y < this.toCheck) {
+            this.speedY = 0;
+            this.x = endHeight + this.height;
+        }
+    }
 }
 
 function updateGameArea() {
-   myGameArea.clear();
+    myGameArea.clear();
     myBackground.update();
     myGamePiece.speedX = 0;
     myGamePiece.speedY = 0;
     if(myGameArea.key && myGameArea.key == 37) {myGamePiece.speedX = -5; }
     if(myGameArea.key && myGameArea.key == 39) {myGamePiece.speedX = 5; }
+    for(i = 0; i < lanes.length; i += 1) {
+        this.random = Math.random;
+        if(this.random > myGameArea.difficulty) {
+            lane[i].obstacles.push(new component(board.laneWidth, 24, "brick.png", lane[i].x, lane[i].y, "obstacle"));
+        }
+        for(j = 0; j < lanes[i].obstacles.length; j += 1) {
+            lanes[i].obstacles[j].newPos();
+            lanes[i].obstacles[j].checkCollision(lane[i].endHeight);
+            lanes[i].obstacles[j].update();
+            }
+    }
     myGamePiece.newPos();
     myGamePiece.update();
 }
+
+function board(startHeight, numLanes) {
+    this.startHeight = startHeight;
+    this.numLanes = numLanes;
+    this.laneWidth = myGameArea.canvas.width / this.numLanes;
+    
+}
+
+function lane(x, y) {
+    this.x = x;
+    this.y = y;
+    this.endHeight = myGameArea.canvas.height;
+    this.obstacles = [];
+    
+}
+    
     
 </script>
 
