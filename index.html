@@ -15,11 +15,15 @@ canvas {
 var myGamePiece;
 var myBackground;
 var myBoard;
+var myEndScreen;
 var lanes = [];
+var done;
     
 function startGame() {
+    done = false;
 	myGamePiece = new component(76, 51, "TrumpLeft.png", 250, 480 - 71, "trump");
     myBackground = new component(640, 480, "des1.png", 0, 0, "image");
+    myEndScreen = new component(640, 480, "End.png", 0, 0, "image");
     myBoard = new board(0, 10);
     for(i = 0; i < myBoard.numLanes; i += 1) {
             lanes.push(new lane(i * myBoard.laneWidth, myBoard.startHeight));
@@ -49,6 +53,9 @@ var myGameArea = {
     },
     stop : function() {
         clearInterval(this.interval);
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        myEndScreen = new component(640, 480, "End.png", 0, 0, "image");
+        myEndScreen.update();
     }
 }
 
@@ -76,7 +83,11 @@ function component(width, height, color, x, y, type) {
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
 	}
-    
+    this.draw = function() {
+        ctx = myEndScreen.context;
+        ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+    }
+     
     this.newPos = function() {
         this.x += this.speedX;
         this.y += this.speedY;
@@ -91,6 +102,7 @@ function component(width, height, color, x, y, type) {
                                              (this.x < this.obstacle.x + board.laneWidth && this.obstacle.x + board.laneWidth < this.x + 76)) && 
                                             (this.obstacle.y + 24 > this.y))) {
                     myGameArea.stop();
+                    done = true;
                 }
             }
     
@@ -129,11 +141,18 @@ function updateGameArea() {
             lanes[i].obstacles[j].newPos();
             lanes[i].endHeight = lanes[i].obstacles[j].checkCollision(lanes[i].endHeight);
             myGamePiece.checkCollision(lanes[i].obstacles[j]);
+            if(!done)
             lanes[i].obstacles[j].update();
             }
     }
     myGamePiece.newPos();
-    myGamePiece.update();
+    if (!done) {
+        myGamePiece.update();
+    }
+    else {
+        myEndScreen = new component(640, 480, "End.png", 0, 0,"image");
+        myEndScreen.draw();
+    }
 }
 
 function board(startHeight, numLanes) {
