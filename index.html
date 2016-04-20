@@ -17,13 +17,15 @@ var myBackground;
 var myBoard;
 var lanes = [];
 var myEndScreen;
+var myWinScreen;
 var done = false;
-var won  = true;
+var won  = false;
     
 function startGame() {
 	myGamePiece = new component(51, 51, "TrumpLeft.png", 250, 480 - 71, "trump");
     myBackground = new component(640, 480, "des1.png", 0, 0, "image");
     myEndScreen = new component(640, 480, "End.png", 0, 0, "image");
+    myWinScreen = new component(640, 480, "Win.png", 0, 0, "image");
     myBoard = new board(0, 10);
     for(i = 0; i < myBoard.numLanes; i += 1) {
             lanes.push(new lane(i * myBoard.laneWidth, myBoard.startHeight));
@@ -54,7 +56,12 @@ var myGameArea = {
     stop : function() {
         clearInterval(this.interval);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        myEndScreen.update();
+        if(won) {
+            myWinScreen.update();
+        }
+        else {
+            myEndScreen.update();
+        }
     }
 }
 
@@ -86,6 +93,14 @@ function component(width, height, color, x, y, type) {
     
     this.newPos = function() {
         this.x += this.speedX;
+        if(type == "trump") {
+            if(this.x < 0) {
+                this.x = 0;
+            }
+            else if(this.x + this.width > myGameArea.canvas.width) {
+                this.x = myGameArea.canvas.width - this.width;
+            }
+        }
         this.y += this.speedY;
     }
     
@@ -142,7 +157,7 @@ function updateGameArea() {
     for(i = 0; i < lanes.length; i += 1) {
         this.randomNum = Math.random();
         if(!done && this.randomNum > myGameArea.difficulty) {
-            lanes[i].obstacles.push(new component(64, 24, "brick.jpg", lanes[i].x, lanes[i].y, "obstacle"));
+            lanes[i].obstacles.push(new component(64, 24, "brick.jpg", lanes[i].x, lanes[i].y - 24, "obstacle"));
         }
         for(j = 0; j < lanes[i].obstacles.length; j += 1) {
             lanes[i].obstacles[j].newPos();
@@ -153,10 +168,10 @@ function updateGameArea() {
                 }
         }
         myGamePiece.inLane(lanes[i]);
-//        if(!done && lanes[i].endHeight <= 0) {
-//            myEndScreen.image.src = "Win.png";
-//            done = true;
-//        }
+        if(!done && lanes[i].endHeight <= 0) {
+            won = true;
+            done = true;
+        }
     }
     if(done) {
         myGameArea.stop();
